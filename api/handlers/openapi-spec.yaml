@@ -1,0 +1,159 @@
+openapi: 3.0.0
+info:
+  title: A simple URL shortener service that allows users to shorten long URLs and retrieve the original URLs from the shortened versions.
+  description: API for generating short url
+  version: 1.0.0
+  contact:
+    name: Support
+    email: support@infracloud.com
+servers:
+  - url: http://localhost:8080
+    description: Dev server
+tags:
+  - name: URL
+    description: |-
+      Endpoints for url shortener service. Where possible direct API
+      
+      # Error response codes
+      
+      | Error code | Error message |
+      |------------|---------------|
+      | E50000    | Internal server error occurred. Please check logs for more details. |
+      | E50001    | Request validation failed. <error message> |
+
+
+
+paths:
+  /shorten:
+    post:
+      summary: Shorten a URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShortenRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '500':
+          $ref: '#/components/responses/500ServerError'
+
+
+  /{shortUrl}:
+    get:
+      summary: Redirect to the original URL
+      x-exclude-strict-server: true
+      parameters:
+        - name: shortUrl
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to the original URL
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '500':
+          $ref: '#/components/responses/500ServerError'
+
+
+  /metrics:
+    get:
+      summary: Get the top 3 domain names that have been shortened the most
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+        '500':
+          $ref: '#/components/responses/500ServerError'
+
+
+components:
+  schemas:
+    ShortenRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://www.example.com/long/url
+
+    ShortenResponse:
+      type: object
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+          example: https://www.example.com/long/url
+        shortUrl:
+          type: string
+          example: http://short.ly/abc123
+
+    MetricsResponse:
+      type: object
+      properties:
+        topDomains:
+          type: array
+          items:
+            $ref: '#/components/schemas/DomainMetric'
+
+    DomainMetric:
+      type: object
+      properties:
+        domain:
+          type: string
+          example: udemy.com
+        count:
+          type: integer
+          example: 6
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    error:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+
+
+  responses:
+    400BadRequest:
+      description: Something is incorrect about the structure of the request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+    500ServerError:
+      description: Something went wrong in our processing.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+    404NotFound:
+      description: Link not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'

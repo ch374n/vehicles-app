@@ -1,12 +1,13 @@
 package app
 
 import (
+	"net/http"
+
+	"github.com/ch374n/vehicles-app/api/handlers"
 	config "github.com/ch374n/vehicles-app/configs"
+	"github.com/ch374n/vehicles-app/internal/repository"
 	"github.com/ch374n/vehicles-app/logger"
 	"github.com/ch374n/vehicles-app/pkg/database"
-	"net/http"
-	"github.com/ch374n/vehicles-app/api/handlers"
-	"github.com/ch374n/vehicles-app/internal/repository"
 	"github.com/gorilla/mux"
 )
 
@@ -15,8 +16,7 @@ func Run() {
 	log := logger.Get()
 	cfg, err := config.Load(log)
 
-	log.Info().Msgf("%v", cfg) 
-
+	log.Info().Msgf("%v", cfg)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("Unable to load the application configuration")
@@ -31,7 +31,6 @@ func Run() {
 	}
 	defer database.DisconnectMongoDB()
 
-
 	manufacturerRepo := repository.NewManufacturerRepo(cfg)
 
 	mfHandler := handlers.NewManufacturerHandlers(manufacturerRepo)
@@ -45,7 +44,8 @@ func Run() {
 	mfRouter.HandleFunc("/{id}", mfHandler.UpdateManufacturer).Methods(http.MethodPut)
 	mfRouter.HandleFunc("/{id}", mfHandler.DeleteManufacturer).Methods(http.MethodDelete)
 
-
+	handlers.SwaggerUIHandler(*mfRouter)
+	
 	log.Println("Starting server on :8080")
 	log.Fatal().Err(http.ListenAndServe(":8080", router))
 
