@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehiclesapp
+  labels:
+    app: vehiclesapp
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: vehiclesapp
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 8
+  template:
+    metadata:
+      labels:
+        app: vehiclesapp
+    spec:
+      containers:
+        - name: vehiclesapp
+          image: //TODO
+          envFrom:
+            - configMapRef:
+                name: vehiclesapp-configmap
+            - secretRef:
+                name: vehiclesapp-secret
