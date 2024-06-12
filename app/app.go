@@ -37,6 +37,8 @@ func Run() {
 
 	router := mux.NewRouter()
 
+	handlers.SwaggerUIHandler(router)
+
 	mfRouter := router.PathPrefix("/api/v1/manufacturers").Subrouter()
 	mfRouter.HandleFunc("", mfHandler.GetManufacturers).Methods(http.MethodGet)
 	mfRouter.HandleFunc("", mfHandler.CreateManufacturer).Methods(http.MethodPost)
@@ -44,9 +46,7 @@ func Run() {
 	mfRouter.HandleFunc("/{id}", mfHandler.UpdateManufacturer).Methods(http.MethodPut)
 	mfRouter.HandleFunc("/{id}", mfHandler.DeleteManufacturer).Methods(http.MethodDelete)
 
-	handlers.SwaggerUIHandler(*mfRouter)
-	
-	log.Println("Starting server on :8080")
-	log.Fatal().Err(http.ListenAndServe(":8080", router))
+	log.Println("Starting server on :8081")
+	log.Fatal().Err(http.ListenAndServe(":8081", router))
 
 }

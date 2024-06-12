@@ -1,18 +1,18 @@
 openapi: 3.0.0
 info:
-  title: A simple URL shortener service that allows users to shorten long URLs and retrieve the original URLs from the shortened versions.
-  description: API for generating short url
+  title: CRUD Api for Vehicles Manufacturer
+  description: A simple Vehicles manufacturer service that allows users perform CRUD Operations on manufacturers data.
   version: 1.0.0
   contact:
     name: Support
-    email: support@infracloud.com
+    email: support@gslab.com
 servers:
   - url: http://localhost:8080
     description: Dev server
 tags:
   - name: URL
     description: |-
-      Endpoints for url shortener service. Where possible direct API
+      Endpoints for vehicles manufacturer service. Where possible direct API
       
       # Error response codes
       
@@ -24,76 +24,139 @@ tags:
 
 
 paths:
-  /shorten:
+  /api/v1/manufacturers:
     post:
-      summary: Shorten a URL
+      summary: Post new Manufacturer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ShortenRequest'
+              $ref: '#/components/schemas/ManufacturerRequest'
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ShortenResponse'
+                $ref: '#/components/schemas/ManufacturerResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '500':
+          $ref: '#/components/responses/500ServerError'
+    get:
+      summary: Get all manufacturers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManufacturerArrayResponse'
         '400':
           $ref: '#/components/responses/400BadRequest'
         '500':
           $ref: '#/components/responses/500ServerError'
 
 
-  /{shortUrl}:
+  /api/v1/manufaturers/{manufacturerId}:
     get:
-      summary: Redirect to the original URL
-      x-exclude-strict-server: true
+      summary: Get manufacturer by Id
       parameters:
-        - name: shortUrl
-          in: path
-          required: true
+        - in: path
+          name: manufacturerId
           schema:
-            type: string
-      responses:
-        '302':
-          description: Redirect to the original URL
-          headers:
-            Location:
-              schema:
-                type: string
-        '400':
-          $ref: '#/components/responses/400BadRequest'
-        '500':
-          $ref: '#/components/responses/500ServerError'
-
-
-  /metrics:
-    get:
-      summary: Get the top 3 domain names that have been shortened the most
+            type: integer
+          required: true
+          description: manufacturer id
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MetricsResponse'
+                $ref: '#/components/schemas/ManufacturerResponse'
+        '500':
+          $ref: '#/components/responses/500ServerError'
+    put:
+      summary: Update manufacturer by Id
+      parameters:
+        - in: path
+          name: manufacturerId
+          schema:
+            type: integer
+          required: true
+          description: manufacturer id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManufacturerRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManufacturerResponse'
         '500':
           $ref: '#/components/responses/500ServerError'
 
+    delete:
+      summary: Delete manufacturer by Id
+      parameters:
+        - in: path
+          name: manufacturerId
+          schema:
+            type: integer
+          required: true
+          description: manufacturer id
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManufacturerResponse'
+        '500':
+          $ref: '#/components/responses/500ServerError'
 
 components:
   schemas:
-    ShortenRequest:
+    ManufacturerRequest:
       type: object
       properties:
-        url:
+        Country:
           type: string
-          format: uri
-          example: https://www.example.com/long/url
+          example: UNITED STATES (USA)
+        Mfr_CommonName: 
+          type: string 
+          example: Tesla
+        Mfr_ID: 
+          type: integer
+          format: int64
+          example: 955
+        Mfr_Name: 
+          type: string
+          example: TESLA, INC.
+        VehicleTypes: 
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleTypesRequest'
 
-    ShortenResponse:
+    VehicleTypesRequest:
+      type: object 
+      properties: 
+          IsPrimary: 
+            type: boolean 
+            example: true
+          Name: 
+            type: string
+            example: Passenger Car
+
+
+    ManufacturerResponse:
       type: object
       properties:
         originalUrl:
@@ -103,6 +166,11 @@ components:
         shortUrl:
           type: string
           example: http://short.ly/abc123
+
+    ManufacturerArrayResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/ManufacturerResponse'
 
     MetricsResponse:
       type: object
