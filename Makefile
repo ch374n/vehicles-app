@@ -7,6 +7,9 @@ clean:					## Clean project
 	rm -rf vendor
 	go mod tidy
 
+generate-mock: 
+	go generate -v ./...
+
 run:
 	go run main.go
 

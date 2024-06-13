@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	Env            string `default:"dev"       envconfig:"ENV"`
-	Port           string `default:"8080"      envconfig:"PORT"`
+	Port           string `default:"8081"      envconfig:"PORT"`
 	MongoUri       string `required:"true" envconfig:"MONGO_URI"`
 	DBName         string `default:"vehiclesapp" envconfig:"DB_NAME"`
 	CollectionName string `default:"vehicles" envconfig:"COLLECTION_NAME"`

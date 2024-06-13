@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: vehiclesapp
-          image: //TODO
+          image: <image-id>
           envFrom:
             - configMapRef:
                 name: vehiclesapp-configmap

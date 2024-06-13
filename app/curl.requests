@@ -1,0 +1,59 @@
+curl -X GET http://localhost:8081/api/v1/manufacturers
+
+curl -X POST http://localhost:8081/api/v1/manufacturers \
+-H "Content-Type: application/json" \
+-d '{
+    "Country": "UNITED STATES (USA)",
+    "Mfr_CommonName": "Tesla",
+    "Mfr_ID": 955,
+    "Mfr_Name": "TESLA, INC.",
+    "VehicleTypes": [
+        {
+            "IsPrimary": true,
+            "Name": "Passenger Car"
+        },
+        {
+            "IsPrimary": false,
+            "Name": "Truck"
+        },
+        {
+            "IsPrimary": false,
+            "Name": "Multipurpose Passenger Vehicle (MPV)"
+        }
+    ]
+}'
+
+
+curl -X GET http://localhost:8081/api/v1/manufacturers/<manufacturer_id>
+
+
+curl -X PUT http://localhost:8081/api/v1/manufacturers/<manufacturer_id> \
+-H "Content-Type: application/json" \
+-d '{
+    "Country": "UNITED STATES (USA)",
+    "Mfr_CommonName": "Tesla",
+    "Mfr_ID": 955,
+    "Mfr_Name": "TESLA, INC.",
+    "VehicleTypes": [
+        {
+            "IsPrimary": true,
+            "Name": "Passenger Car"
+        },
+        {
+            "IsPrimary": false,
+            "Name": "Truck"
+        },
+        {
+            "IsPrimary": false,
+            "Name": "Multipurpose Passenger Vehicle (MPV)"
+        }
+    ]
+}'
+
+
+curl -X DELETE http://localhost:8081/api/v1/manufacturers/<manufacturer_id>
+
+
+curl -X GET http://localhost:8081/api/v1/manufacturers/load
+
+
