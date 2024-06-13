@@ -31,9 +31,9 @@ func Run() {
 	}
 	defer database.DisconnectMongoDB()
 
-	manufacturerRepo := repository.NewManufacturerRepo(cfg)
+	manufacturerRepo := repository.NewManufacturerRepo(database.MongoClient.Database(cfg.DBName).Collection(cfg.CollectionName))
 
-	mfHandler := handlers.NewManufacturerHandlers(manufacturerRepo)
+	mfHandler := handlers.NewManufacturerHandlers(&manufacturerRepo)
 
 	router := mux.NewRouter()
 
@@ -42,6 +42,7 @@ func Run() {
 	mfRouter := router.PathPrefix("/api/v1/manufacturers").Subrouter()
 	mfRouter.HandleFunc("", mfHandler.GetManufacturers).Methods(http.MethodGet)
 	mfRouter.HandleFunc("", mfHandler.CreateManufacturer).Methods(http.MethodPost)
+	mfRouter.HandleFunc("/load", mfHandler.LoadManufacturers).Methods(http.MethodGet)
 	mfRouter.HandleFunc("/{id}", mfHandler.GetManufacturer).Methods(http.MethodGet)
 	mfRouter.HandleFunc("/{id}", mfHandler.UpdateManufacturer).Methods(http.MethodPut)
 	mfRouter.HandleFunc("/{id}", mfHandler.DeleteManufacturer).Methods(http.MethodDelete)
