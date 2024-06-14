@@ -3,7 +3,7 @@ name: Go Code Checks
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
 
@@ -15,48 +15,47 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.22.4
+        go-version: 1.16
 
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
 
     - name: Run format check
       id: format
       run: |
-        echo "format_output=$(go fmt ./... )\n" >> $GITHUB_OUTPUT  # Capture stderr and stdout
-
+        echo "::set-output name=format_output::$(go fmt ./...)"
     - name: Run tests
       id: tests
       run: |
-        echo "test_output=$(go test ./... -coverpkg ./... -coverprofile=coverage.out )\n" >> $GITHUB_OUTPUT  # Capture stderr and stdout
-
+        go test ./... -coverprofile=coverage.out
+        echo "::set-output name=test_output::$(go tool cover -func=coverage.out | grep total | awk '{print $3}')"
     - name: Run coverage
       id: coverage
       run: |
-        echo "coverage_output=$(go test -coverprofile=coverage.out ./... )\n" >> $GITHUB_OUTPUT  # Capture stderr and stdoutt
-
+        go test -coverprofile=coverage.out ./...
+        echo "::set-output name=coverage_output::$(go tool cover -func=coverage.out)"
     - name: Comment on PR
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const fs = require('fs');
-
-          const formatOutput = ${{join(steps.format.outputs.*, '\n')}} || 'No output';
-          const testOutput = ${{join(steps.tests.outputs.*, '\n')}} || 'No output';
-          const coverageOutput = ${{join(steps.coverage.outputs.*, '\n')}} || 'No output';
-
+          const formatOutput = '${{ steps.format.outputs.format_output }}' || 'No output';
+          const testOutput = '${{ steps.tests.outputs.test_output }}' || 'No output';
+          const coverageOutput = '${{ steps.coverage.outputs.coverage_output }}' || 'No output';
           const comment = `
           ### Format Check Output
+          \`\`\`
           ${formatOutput}
-
+          \`\`\`
           ### Tests Output
+          \`\`\`
           ${testOutput}
-
+          \`\`\`
           ### Coverage Output
+          \`\`\`
           ${coverageOutput}
+          \`\`\`
           `;
-
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
