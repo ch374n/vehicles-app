@@ -29,10 +29,15 @@ jobs:
         go test -coverprofile=coverage.out ./...
         go tool cover -html=coverage.out > coverage.html
 
+    - name: Prepare coverage report
+      id: prepare_coverage
+      run: echo "COVERAGE_REPORT=$(cat coverage.html)" >> $GITHUB_OUTPUT
+
+
     - name: Add PR comment with coverage report
       uses: actions/github-script@v6
       env:
-        COVERAGE_REPORT: $(cat coverage.html)
+        COVERAGE_REPORT: ${{ env.COVERAGE_REPORT }}
       with:
         script: |
           const fs = require('fs');
