@@ -20,32 +20,20 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v3
 
-      - name: Run format check
-        id: format
-        run: |
-          make format
-          format_output=$(go fmt ./... 2>&1)  # Capture stderr and stdout
+    - name: Run format check
+      id: format
+      run: |
+        echo "format_output=$(go fmt ./... )\n" >> $GITHUB_OUTPUT  # Capture stderr and stdout
 
-      - name: Capture format output
-        id: capture_format_output
-        run: |
-          echo "$format_output" > format_output.txt
+    - name: Run tests
+      id: tests
+      run: |
+        echo "test_output=$(go test ./... -coverpkg ./... -coverprofile=coverage.out )\n" >> $GITHUB_OUTPUT  # Capture stderr and stdout
 
-      - name: Run tests
-        id: tests
-        run: |
-          test_output=$(go test ./... -coverpkg ./... -coverprofile=coverage.out 2>&1)  # Capture stderr and stdout
-
-      - name: Capture tests output
-        id: capture_tests_output
-        run: |
-          echo "$test_output" > tests_output.txt
-
-      - name: Run coverage
-        id: coverage
-        run: |
-          coverage_output=$(go test -coverprofile=coverage.out ./... 2>&1)  # Capture stderr and stdout
-          cat coverage.out | grep -vE '(/app/|configs|/logger/|/generated/|/cloud/)’ > coverage_filtered.out
+    - name: Run coverage
+      id: coverage
+      run: |
+        echo "coverage_output=$(go test -coverprofile=coverage.out ./... )\n" >> $GITHUB_OUTPUT  # Capture stderr and stdoutt
 
     - name: Comment on PR
       uses: actions/github-script@v6
@@ -54,9 +42,9 @@ jobs:
         script: |
           const fs = require('fs');
 
-          const formatOutput = process.env.format_output || 'No output';
-          const testOutput = process.env.test_output || 'No output';
-          const coverageOutput = process.env.coverage_output || 'No output';
+          const formatOutput = steps.format.outputs.format_output || 'No output';
+          const testOutput = steps.tests.outputs.test_output || 'No output';
+          const coverageOutput = steps.coverage.outputs.coverage_output || 'No output';
 
           const comment = `
           ### Format Check Output
