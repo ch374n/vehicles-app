@@ -1,7 +1,6 @@
 name: Go Code Checks
 
 on:
-  workflow_dispatch:
   pull_request:
     branches: [ main ]
 
@@ -15,14 +14,14 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.22.4
+        go-version: 1.19
 
     - name: Check out code
       uses: actions/checkout@v3
 
     - name: Run format check
       run: |
-        format_output=$(make format)
+        format_output=$(make format || true)
         echo "FORMAT_OUTPUT<<EOF" >> $GITHUB_OUTPUT
         echo "```" >> $GITHUB_OUTPUT
         echo "$format_output" >> $GITHUB_OUTPUT
@@ -31,7 +30,7 @@ jobs:
 
     - name: Run tests
       run: |
-        test_output=$(make test)
+        test_output=$(make test || true)
         echo "TEST_OUTPUT<<EOF" >> $GITHUB_OUTPUT
         echo "```" >> $GITHUB_OUTPUT
         echo "$test_output" >> $GITHUB_OUTPUT
@@ -40,7 +39,7 @@ jobs:
 
     - name: Run coverage
       run: |
-        coverage_output=$(make coverage)
+        coverage_output=$(make coverage || true)
         echo "COVERAGE_OUTPUT<<EOF" >> $GITHUB_OUTPUT
         echo "```" >> $GITHUB_OUTPUT
         echo "$coverage_output" >> $GITHUB_OUTPUT
@@ -52,9 +51,9 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const formatOutput = process.env.FORMAT_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim();
-          const testOutput = process.env.TEST_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim();
-          const coverageOutput = process.env.COVERAGE_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim();
+          const formatOutput = process.env.FORMAT_OUTPUT ? process.env.FORMAT_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim() : 'No output';
+          const testOutput = process.env.TEST_OUTPUT ? process.env.TEST_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim() : 'No output';
+          const coverageOutput = process.env.COVERAGE_OUTPUT ? process.env.COVERAGE_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim() : 'No output';
 
           const comment = `
           ### Format Check

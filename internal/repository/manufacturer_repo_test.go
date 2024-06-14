@@ -215,7 +215,6 @@ func TestGetAllManufacturers(t *testing.T) {
 		killCursors := mtest.CreateCursorResponse(0, "vehiclesapp.vehicles", mtest.NextBatch)
 		mt.AddMockResponses(first, killCursors)
 
-
 		manufacturerResponse, err := manufacturerRepo.GetAllManufacturers(context.Background(), manufacturerCollection)
 		assert.Nil(t, err)
 
