@@ -1,0 +1,30 @@
+version: '3.3'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - mynetwork
+
+  golang_app:
+    build: .
+    container_name: golang_app
+    environment:
+      - APP_MONGO_URI=mongodb://mongodb:27017/vehicles_db
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+
+volumes:
+  mongodb_data:

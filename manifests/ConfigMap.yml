@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: vehiclesapp-configmap
 data:
-  APP_PORT: 8080
+  APP_PORT: "8080"
   APP_ENV: dev
