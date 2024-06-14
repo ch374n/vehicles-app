@@ -25,14 +25,10 @@ jobs:
         go fmt ./...
 
     - name: Run tests and generate coverage report
-      run: |
-        go test -coverprofile=coverage.out ./...
-        go tool cover -html=coverage.out > coverage.html
-
-    - name: Prepare coverage report
       id: prepare_coverage
-      run: echo "coverage_report=$(cat coverage.html)" >> $GITHUB_OUTPUT
-
+      run: |
+        go test -coverprofile=coverage.out ./...  
+        echo "coverage_report=$(cat coverage.out)" >> $GITHUB_OUTPUT
 
     - name: Add PR comment with coverage report
       uses: actions/github-script@v6
