@@ -24,13 +24,11 @@ jobs:
       id: format
       run: |
         echo "::set-output name=format_output::$(go fmt ./...)"
-
     - name: Run tests
       id: tests
       run: |
         go test ./... -coverprofile=coverage.out
         echo "::set-output name=test_output::$(go tool cover -func=coverage.out | grep total | awk '{print $3}')"
-        
     - name: Run coverage
       id: coverage
       run: |
@@ -44,7 +42,7 @@ jobs:
         script: |
           const formatOutput = '${{ steps.format.outputs.format_output }}' || 'No output';
           const testOutput = '${{ steps.tests.outputs.test_output }}' || 'No output';
-          const coverageOutput = '${{ steps.coverage.outputs.coverage_output.replace(/\n/g, '\\n') }}' || 'No output';
+          const coverageOutput = '${{ steps.coverage.outputs.coverage_output }}' || 'No output';
           const comment = `
           ### Format Check Output
           \`\`\`
