@@ -30,7 +30,23 @@ jobs:
         go tool cover -html=coverage.out > coverage.html
 
     - name: Add PR comment with coverage report
-      uses: peter-evans/create-pull-request-comment@v4
+      uses: actions/github-script@v6
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        body: "Coverage report: \n$(cat coverage.html)"
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+
+          // Read the coverage report
+          const coverageReportPath = './coverage.html';
+          const coverageReport = fs.readFileSync(path.resolve(coverageReportPath), 'utf8');
+
+          // Create the comment content
+          const commentContent = `Coverage report:\n\n${coverageReport}`;
+
+          // Add the comment to the PR
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentContent
+          });
