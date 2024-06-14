@@ -23,7 +23,7 @@ jobs:
     - name: Run tests and capture output  # Indentation fixed here
       id: test_output
       run: |
-        go test -coverprofile=coverage.out./... > test_output.txt
+        go test -coverprofile=coverage.out ./... > test_output.txt
         echo "::set-output name=output::$(cat test_output.txt)"
     
     - name: Add PR comment with test output
