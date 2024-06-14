@@ -22,7 +22,7 @@ jobs:
         go mod tidy
         go fmt ./...
 
-   - name: Run tests and capture output
+  - name: Run tests and capture output  # Indentation fixed here
       id: test_output
       run: |
         go test -coverprofile=coverage.out./... > test_output.txt
@@ -38,10 +38,10 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
-          // Read the test output file and split it into lines
+          # Read the test output file and split it into lines
           const testOutputLines = fs.readFileSync(process.env.TEST_OUTPUT).split('\n');
 
-          // Filter out empty lines and construct the comment body
+          # Filter out empty lines and construct the comment body
           const commentBody = testOutputLines.filter(line => line.trim()!== '').join('\n\n');
 
           await github.rest.issues.createComment({
@@ -50,4 +50,3 @@ jobs:
             repo: context.repo.repo,
             body: commentBody
           });
-
