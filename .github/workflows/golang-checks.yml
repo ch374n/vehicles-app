@@ -25,24 +25,41 @@ jobs:
       run: |
         echo "::set-output name=format_output::$(make format || true)"
 
+    - name: Capture format output
+      id: capture_format_output
+      run: |
+        echo "${{ steps.format.outputs.format_output }}" > format_output.txt
+
     - name: Run tests
       id: tests
       run: |
         echo "::set-output name=test_output::$(make test || true)"
+
+    - name: Capture tests output
+      id: capture_tests_output
+      run: |
+        echo "${{ steps.tests.outputs.test_output }}" > tests_output.txt
 
     - name: Run coverage
       id: coverage
       run: |
         echo "::set-output name=coverage_output::$(make coverage || true)"
 
+    - name: Capture coverage output
+      id: capture_coverage_output
+      run: |
+        echo "${{ steps.coverage.outputs.coverage_output }}" > coverage_output.txt
+
     - name: Comment on PR
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const formatOutput = '${{ steps.format.outputs.format_output }}'.trim() || 'No output';
-          const testOutput = '${{ steps.tests.outputs.test_output }}'.trim() || 'No output';
-          const coverageOutput = '${{ steps.coverage.outputs.coverage_output }}'.trim() || 'No output';
+          const fs = require('fs');
+
+          const formatOutput = fs.readFileSync('format_output.txt', 'utf8').trim() || 'No output';
+          const testOutput = fs.readFileSync('tests_output.txt', 'utf8').trim() || 'No output';
+          const coverageOutput = fs.readFileSync('coverage_output.txt', 'utf8').trim() || 'No output';
 
           const comment = `
           ### Format Check Output
