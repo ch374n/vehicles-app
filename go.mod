@@ -1,6 +1,6 @@
 module github.com/ch374n/vehicles-app
 
-go 1.22.4
+go 1.23
 
 require (
 	github.com/golang/mock v1.6.0
