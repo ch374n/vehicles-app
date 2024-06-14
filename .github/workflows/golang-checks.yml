@@ -24,29 +24,31 @@ jobs:
         go mod tidy
         go fmt ./...
 
-    - name: Run tests and generate coverage report
-      id: prepare_coverage
+   - name: Run tests and capture output
+      id: test_output
       run: |
-        go test -coverprofile=coverage.out ./...  
-        echo "coverage_report=$(cat coverage.out)" >> $GITHUB_OUTPUT
+        go test -coverprofile=coverage.out./... > test_output.txt
+        echo "::set-output name=output::$(cat test_output.txt)"
 
-    - name: Add PR comment with coverage report
+    - name: Add PR comment with test output
       uses: actions/github-script@v6
       env:
-        COVERAGE_REPORT: ${{ steps.prepare_coverage.outputs.coverage_report }}
+        TEST_OUTPUT: ${{ steps.test_output.outputs.output }}
       with:
         script: |
           const fs = require('fs');
           const path = require('path');
 
-          // Create the comment content using the environment variable
-          const commentContent = `Coverage report:\n\n${process.env.COVERAGE_REPORT}`;
+          // Read the test output file and split it into lines
+          const testOutputLines = fs.readFileSync(process.env.TEST_OUTPUT).split('\n');
 
-          // Add the comment to the PR
+          // Filter out empty lines and construct the comment body
+          const commentBody = testOutputLines.filter(line => line.trim()!== '').join('\n\n');
+
           await github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: commentContent
+            body: commentBody
           });
 
