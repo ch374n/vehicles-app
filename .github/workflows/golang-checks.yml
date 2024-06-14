@@ -1,10 +1,9 @@
 name: Go Test and Format
-
 on:
   workflow_dispatch:
   pull_request:
     branches: [main]
-    
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +15,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '^1.18' # Specify the Go version you want to use
+        go-version: 1.22.4 # Specify the Go version you want to use
 
     - name: Run go fmt
       run: |
@@ -34,6 +33,7 @@ jobs:
       env:
         TEST_OUTPUT: ${{ steps.test_output.outputs.output }}
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
           const path = require('path');
