@@ -31,17 +31,15 @@ jobs:
 
     - name: Add PR comment with coverage report
       uses: actions/github-script@v6
+      env:
+        COVERAGE_REPORT: $(cat coverage.html)
       with:
         script: |
           const fs = require('fs');
           const path = require('path');
 
-          // Read the coverage report
-          const coverageReportPath = './coverage.html';
-          const coverageReport = fs.readFileSync(path.resolve(coverageReportPath), 'utf8');
-
-          // Create the comment content
-          const commentContent = `Coverage report:\n\n${coverageReport}`;
+          // Create the comment content using the environment variable
+          const commentContent = `Coverage report:\n\n${process.env.COVERAGE_REPORT}`;
 
           // Add the comment to the PR
           await github.rest.issues.createComment({
@@ -50,3 +48,4 @@ jobs:
             repo: context.repo.repo,
             body: commentContent
           });
+
