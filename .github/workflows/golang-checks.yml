@@ -29,7 +29,7 @@ jobs:
     - name: Add PR comment with test output
       uses: actions/github-script@v6
       env:
-        TEST_OUTPUT: ${{ steps.test_output.outputs.output }}
+        TEST_OUTPUT: ${{join(steps.test_output.outputs.*, '\n')}}
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
