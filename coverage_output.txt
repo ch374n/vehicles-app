@@ -1,0 +1,9 @@
+go test ./... -coverpkg ./... -coverprofile coverage.out && cat coverage.out | grep -vE '(/app/|configs|/logger/|/generated/|/cloud/)' > coverage_filtered.out
+	github.com/ch374n/vehicles-app		coverage: 0.0% of statements
+	github.com/ch374n/vehicles-app/api/handlers		coverage: 0.0% of statements
+	github.com/ch374n/vehicles-app/configs		coverage: 0.0% of statements
+	github.com/ch374n/vehicles-app/app		coverage: 0.0% of statements
+?   	github.com/ch374n/vehicles-app/internal/models	[no test files]
+	github.com/ch374n/vehicles-app/logger		coverage: 0.0% of statements
+	github.com/ch374n/vehicles-app/pkg/database		coverage: 0.0% of statements
+ok  	github.com/ch374n/vehicles-app/internal/repository	0.016s	coverage: 11.8% of statements in ./...
