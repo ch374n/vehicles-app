@@ -36,15 +36,9 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
-          # Read the test output file and split it into lines
-          const testOutputLines = fs.readFileSync(process.env.TEST_OUTPUT).split('\n');
-
-          # Filter out empty lines and construct the comment body
-          const commentBody = testOutputLines.filter(line => line.trim()!== '').join('\n\n');
-
           await github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: commentBody
+            body: process.env.TEST_OUTPUT
           });
