@@ -1,9 +1,8 @@
 module github.com/ch374n/vehicles-app
 
-go 1.23
+go 1.22.4
 
 require (
-	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/zerolog v1.33.0
