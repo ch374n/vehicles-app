@@ -15,6 +15,10 @@ generate-mock:
 run:    ## Run application
 	go run main.go
 
+run-docker:
+	docker build -t ch374n/vehicles-app:latest
+	docker run -it -p 8081:8081 -e APP_MONGO_URI=$(APP_MONGO_URI) ch374n/vehicles-app
+
 coverage:   ## Run code coverage
 	go test ./... -coverpkg ./... -coverprofile coverage.out && cat coverage.out | grep -vE "(/mocks/|testenv|/cmd/|/generated/|/cloud/)" > coverage_filtered.out && go tool cover -html coverage_filtered.out
 
