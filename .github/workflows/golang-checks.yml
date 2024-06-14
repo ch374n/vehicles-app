@@ -22,7 +22,7 @@ jobs:
     - name: Run go fmt
       run: |
         go mod tidy
-        go fmt./...
+        go fmt ./...
 
     - name: Run tests and generate coverage report
       run: |
