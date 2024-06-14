@@ -22,4 +22,5 @@ func SwaggerUIHandler(r *mux.Router) {
 	r.PathPrefix("/api-docs/").Handler(http.StripPrefix("/api-docs/", swaggerUIHandler))
 	r.HandleFunc("/api-docs", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/api-docs/", http.StatusMovedPermanently)
-	})}
+	})
+}
