@@ -9,6 +9,9 @@ clean:        ## Clean project
 	rm -rf vendor
 	go mod tidy
 
+format: 
+	go fmt ./...
+
 generate-mock: 
 	go generate -v ./...
 
@@ -20,8 +23,8 @@ run-docker:
 	docker run -it -p 8081:8081 -e APP_MONGO_URI=$(APP_MONGO_URI) ch374n/vehicles-app
 
 coverage:   ## Run code coverage
-	go test ./... -coverpkg ./... -coverprofile coverage.out && cat coverage.out | grep -vE "(/mocks/|testenv|/cmd/|/generated/|/cloud/)" > coverage_filtered.out && go tool cover -html coverage_filtered.out
-
+	go test ./... -coverpkg ./... -coverprofile coverage.out && cat coverage.out | grep -vE '(/app/|configs|/logger/|/generated/|/cloud/)' > coverage_filtered.out
+	
 test:        ## Run test suite
 	go mod vendor
 	go build ./...
