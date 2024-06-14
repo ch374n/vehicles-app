@@ -42,9 +42,9 @@ jobs:
         script: |
           const fs = require('fs');
 
-          const formatOutput = steps.format.outputs.format_output || 'No output';
-          const testOutput = steps.tests.outputs.test_output || 'No output';
-          const coverageOutput = steps.coverage.outputs.coverage_output || 'No output';
+          const formatOutput = ${{join(steps.format.outputs.*, '\n')}} || 'No output';
+          const testOutput = ${{join(steps.tests.outputs.*, '\n')}} || 'No output';
+          const coverageOutput = ${{join(steps.coverage.outputs.*, '\n')}} || 'No output';
 
           const comment = `
           ### Format Check Output
