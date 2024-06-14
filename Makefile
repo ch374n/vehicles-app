@@ -9,6 +9,9 @@ clean:        ## Clean project
 	rm -rf vendor
 	go mod tidy
 
+format: 
+	go fmt ./...
+
 generate-mock: 
 	go generate -v ./...
 
