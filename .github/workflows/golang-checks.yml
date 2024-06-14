@@ -1,0 +1,74 @@
+name: Go Code Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  go-checks:
+    name: Go Code Checks
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Run format check
+      run: |
+        format_output=$(make format)
+        echo "FORMAT_OUTPUT<<EOF" >> $GITHUB_OUTPUT
+        echo "```" >> $GITHUB_OUTPUT
+        echo "$format_output" >> $GITHUB_OUTPUT
+        echo "```" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Run tests
+      run: |
+        test_output=$(make test)
+        echo "TEST_OUTPUT<<EOF" >> $GITHUB_OUTPUT
+        echo "```" >> $GITHUB_OUTPUT
+        echo "$test_output" >> $GITHUB_OUTPUT
+        echo "```" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Run coverage
+      run: |
+        coverage_output=$(make coverage)
+        echo "COVERAGE_OUTPUT<<EOF" >> $GITHUB_OUTPUT
+        echo "```" >> $GITHUB_OUTPUT
+        echo "$coverage_output" >> $GITHUB_OUTPUT
+        echo "```" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Comment on PR
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const formatOutput = process.env.FORMAT_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim();
+          const testOutput = process.env.TEST_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim();
+          const coverageOutput = process.env.COVERAGE_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim();
+
+          const comment = `
+          ### Format Check
+          ${formatOutput}
+
+          ### Tests
+          ${testOutput}
+
+          ### Coverage
+          ${coverageOutput}
+          `;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
