@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -31,7 +32,14 @@ func (h *ManufacturerHandlers) LoadManufacturers(w http.ResponseWriter, r *http.
 
 	log := logger.Get()
 
-	resp, err := http.Get(apiURL)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Get(apiURL)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

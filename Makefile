@@ -19,12 +19,32 @@ run:    ## Run application
 	go run main.go
 
 run-docker:
-	docker build -t ch374n/vehicles-app:latest
-	docker run -it -p 8081:8081 -e APP_MONGO_URI=$(APP_MONGO_URI) ch374n/vehicles-app
+	docker run -it -p 8081:8081 -e APP_MONGO_URI=$(APP_MONGO_URI) chetannimbalkar98/vehicles-app
 
 coverage:   ## Run code coverage
 	go test ./... -coverpkg ./... -coverprofile coverage.out && cat coverage.out | grep -vE '(/app/|configs|/logger/|/generated/|/cloud/)' > coverage_filtered.out
+
+docker-compose-up:
+	docker-compose up 
+
+docker-compose-down:
+	docker-compose down
+
+minikube: ## Start minkube
+	minikube start
 	
+
+start-cluster: ## Deploy vehicles-app
+	kubectl apply -f manifests/
+
+port-forward: ## Expose a service
+	kubectl port-forward svc/vehiclesapp 8081:8081
+
+stop-cluster: ## Stop vehicles-app
+	kubectl delete -f manifests/
+	minikube stop 
+
+
 test:        ## Run test suite
 	go mod vendor
 	go build ./...

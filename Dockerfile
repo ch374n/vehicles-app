@@ -11,7 +11,7 @@ RUN go build -v -o server
 
 
 FROM debian:bookworm-slim
-
+RUN apk --no-cache add ca-certificates
 COPY --from=builder /app/server /app/server
 
 CMD ["/app/server"]
