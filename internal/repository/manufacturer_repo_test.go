@@ -2,49 +2,24 @@ package repository
 
 import (
 	"context"
-	"errors"
+	"go.mongodb.org/mongo-driver/bson"
 	"testing"
+
 	models "github.com/ch374n/vehicles-app/internal/models"
-	"go.mongodb.org/mongo-driver/mongo"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
 
-type ManufacturerSuite struct {
-	suite.Suite
-	*require.Assertions
-	ctrl              *gomock.Controller
-	collections *mongo.Collection
-	manufacturerRepo ManufacturerRepo
-}
+func TestCreateManufacturer(t *testing.T) {
+	manufacturerRepo := NewManufacturerRepo()
 
-func TestManufacturerSuite(t *testing.T) {
-	suite.Run(t, new(ManufacturerSuite))
-}
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
-func (s *ManufacturerSuite) SetupTest() {
-	s.Assertions = require.New(s.T())
-
-	s.ctrl = gomock.NewController(s.T())
-
-	s.collections = //TODO
-
-	s.manufacturerRepo = NewManufacturerRepo()
-}
-
-func (s *ManufacturerSuite) TearDownTest() {
-	s.ctrl.Finish()
-}
-
-func (s *ManufacturerSuite) TestCreateManufacturer() {
-	ctx := context.Background()
-
-	manufacturerInput := models.Manufacturer{
-		Country:        "UNITED STATES (USA)",
-		MfrCommonName:  "Tesla",
-		MfrID:          955,
-		MfrName:        "TESLA, INC.",
+	manufacturer := models.Manufacturer{
+		Country:       "UNITED STATES (USA)",
+		MfrCommonName: "Tesla",
+		MfrID:         955,
+		MfrName:       "TESLA, INC.",
 		VehicleTypes: []models.VehicleType{
 			{
 				IsPrimary: true,
@@ -53,77 +28,35 @@ func (s *ManufacturerSuite) TestCreateManufacturer() {
 		},
 	}
 
-	s.collections.EXPECT().Find(ctx, gomock.Eq(manufacturerInput)).Return(nil)
+	mt.Run("success", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
 
-	err := s.manufacturerRepo.CreateManufacturer(ctx, manufacturerInput)
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-	s.NoError(err)
+		err := manufacturerRepo.CreateManufacturer(context.Background(), manufacturerCollection, manufacturer)
+		assert.Nil(t, err)
+	})
 
+	mt.Run("failure", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
 
-	// test error scenario
-	s.collections.EXPECT().Find(ctx, gomock.Eq(manufacturerInput)).Return(errors.New("database error"))
-	err = s.manufacturerRepo.CreateManufacturer(ctx, manufacturerInput)
-	s.Error(err)
+		mt.AddMockResponses(bson.D{{"ok", 0}})
 
+		err := manufacturerRepo.CreateManufacturer(context.Background(), manufacturerCollection, manufacturer)
+		assert.Error(t, err)
+	})
 }
 
+func TestGetManufacturerById(t *testing.T) {
+	manufacturerRepo := NewManufacturerRepo()
 
-func (s *ManufacturerSuite) TestGetAllManufacturers() {
-	ctx := context.Background()
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
-	expectedManufacturers := []models.Manufacturer{
-		{
-			Country:        "UNITED STATES (USA)",
-			MfrCommonName:  "Tesla",
-			MfrID:          955,
-			MfrName:        "TESLA, INC.",
-			VehicleTypes: []models.VehicleType{
-				{
-					IsPrimary: true,
-					Name:      "Passenger Car",
-				},
-			},
-		},
-		{
-			Country:        "UNITED STATES (USA)",
-			MfrCommonName:  "Ford",
-			MfrID:          474,
-			MfrName:        "FORD MOTOR COMPANY",
-			VehicleTypes: []models.VehicleType{
-				{
-					IsPrimary: true,
-					Name:      "Passenger Car",
-				},
-				{
-					IsPrimary: false,
-					Name:      "Truck",
-				},
-			},
-		},
-	}
-
-	s.manufacturerRepo.EXPECT().GetAllManufacturers(ctx).Return(expectedManufacturers, nil)
-
-	manufacturers, err := s.manufacturerRepo.GetAllManufacturers(ctx)
-
-	s.NoError(err)
-	s.Equal(expectedManufacturers, manufacturers)
-
-	// Test error scenario
-	s.manufacturerRepo.EXPECT().GetAllManufacturers(ctx).Return(nil, errors.New("database error"))
-	_, err = s.manufacturerRepo.GetAllManufacturers(ctx)
-	s.Error(err)
-}
-
-func (s *ManufacturerSuite) TestUpdateManufacturer() {
-	ctx := context.Background()
-	id := 955
-
-	manufacturerInput := models.Manufacturer{
-		Country:        "UNITED STATES (USA)",
-		MfrCommonName:  "Tesla",
-		MfrID:          955,
-		MfrName:        "TESLA, INC.",
+	manufacturer := models.Manufacturer{
+		Country:       "UNITED STATES (USA)",
+		MfrCommonName: "Tesla",
+		MfrID:         955,
+		MfrName:       "TESLA, INC.",
 		VehicleTypes: []models.VehicleType{
 			{
 				IsPrimary: true,
@@ -132,30 +65,173 @@ func (s *ManufacturerSuite) TestUpdateManufacturer() {
 		},
 	}
 
-	s.manufacturerRepo.EXPECT().UpdateManufacturer(ctx, id, gomock.Eq(manufacturerInput)).Return(nil)
+	mt.Run("success", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
 
-	err := s.manufacturerRepo.UpdateManufacturer(ctx, id, manufacturerInput)
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "vehiclesapp.vehicles", mtest.FirstBatch, bson.D{
+			{"ok", 1},
+			{"country", manufacturer.Country},
+			{"mfrCommonName", manufacturer.MfrCommonName},
+			{"mfrID", manufacturer.MfrID},
+			{"mfrName", manufacturer.MfrName},
+			{"vehicleTypes", bson.A{
+				bson.D{
+					{"isPrimary", manufacturer.VehicleTypes[0].IsPrimary},
+					{"name", manufacturer.VehicleTypes[0].Name},
+				},
+			},
+			}},
+		))
 
-	s.NoError(err)
+		manufacturerResponse, err := manufacturerRepo.GetManufacturer(context.Background(), manufacturerCollection, manufacturer.MfrID)
+		assert.Nil(t, err)
 
-	// Test error scenario
-	s.manufacturerRepo.EXPECT().UpdateManufacturer(ctx, id, gomock.Any()).Return(errors.New("database error"))
-	err = s.manufacturerRepo.UpdateManufacturer(ctx, id, manufacturerInput)
-	s.Error(err)
+		assert.Equal(t, manufacturer, manufacturerResponse)
+
+	})
+
+	mt.Run("failure", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
+
+		mt.AddMockResponses(bson.D{{"ok", 0}})
+
+		_, err := manufacturerRepo.GetManufacturer(context.Background(), manufacturerCollection, manufacturer.MfrID)
+		assert.Error(t, err)
+	})
+
 }
 
-func (s *ManufacturerSuite) TestDeleteManufacturer() {
-	ctx := context.Background()
-	id := 955
+func TestDeleteManufacturerById(t *testing.T) {
+	manufacturerRepo := NewManufacturerRepo()
 
-	s.manufacturerRepo.EXPECT().DeleteManufacturer(ctx, id).Return(nil)
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
-	err := s.manufacturerRepo.DeleteManufacturer(ctx, id)
+	mt.Run("success", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"acknowledged", true}, {"n", 1}})
 
-	s.NoError(err)
+		err := manufacturerRepo.DeleteManufacturer(context.Background(), manufacturerCollection, 955)
+		assert.Nil(t, err)
 
-	// Test error scenario
-	s.manufacturerRepo.EXPECT().DeleteManufacturer(ctx, id).Return(errors.New("database error"))
-	err = s.manufacturerRepo.DeleteManufacturer(ctx, id)
-	s.Error(err)
+	})
+
+	mt.Run("failure", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
+
+		mt.AddMockResponses(bson.D{{"ok", 0}, {"acknowledged", true}, {"n", 0}})
+		err := manufacturerRepo.DeleteManufacturer(context.Background(), manufacturerCollection, 955)
+		assert.NotNil(t, err)
+	})
+
+}
+
+func TestUpdateManufacturerById(t *testing.T) {
+	manufacturerRepo := NewManufacturerRepo()
+
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	manufacturer := models.Manufacturer{
+		Country:       "UNITED STATES (USA)",
+		MfrCommonName: "Tesla",
+		MfrID:         955,
+		MfrName:       "TESLA, INC.",
+		VehicleTypes: []models.VehicleType{
+			{
+				IsPrimary: true,
+				Name:      "Passenger Car",
+			},
+		},
+	}
+
+	mt.Run("success", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "vehiclesapp.vehicles", mtest.FirstBatch, bson.D{
+			{"ok", 1},
+			{"country", manufacturer.Country},
+			{"mfrCommonName", manufacturer.MfrCommonName},
+			{"mfrID", manufacturer.MfrID},
+			{"mfrName", manufacturer.MfrName},
+			{"vehicleTypes", bson.A{
+				bson.D{
+					{"isPrimary", manufacturer.VehicleTypes[0].IsPrimary},
+					{"name", manufacturer.VehicleTypes[0].Name},
+				},
+			},
+			}},
+		))
+
+		err := manufacturerRepo.UpdateManufacturer(context.Background(), manufacturerCollection, manufacturer.MfrID, manufacturer)
+		assert.Nil(t, err)
+
+	})
+
+	mt.Run("failure", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
+
+		mt.AddMockResponses(bson.D{{"ok", 0}})
+
+		err := manufacturerRepo.UpdateManufacturer(context.Background(), manufacturerCollection, manufacturer.MfrID, manufacturer)
+		assert.Error(t, err)
+	})
+
+}
+
+func TestGetAllManufacturers(t *testing.T) {
+	manufacturerRepo := NewManufacturerRepo()
+
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	manufacturer := models.Manufacturer{
+		Country:       "UNITED STATES (USA)",
+		MfrCommonName: "Tesla",
+		MfrID:         955,
+		MfrName:       "TESLA, INC.",
+		VehicleTypes: []models.VehicleType{
+			{
+				IsPrimary: true,
+				Name:      "Passenger Car",
+			},
+		},
+	}
+
+	mt.Run("success", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
+
+		first := mtest.CreateCursorResponse(1, "vehiclesapp.vehicles", mtest.FirstBatch, bson.D{
+			{"ok", 1},
+			{"country", manufacturer.Country},
+			{"mfrCommonName", manufacturer.MfrCommonName},
+			{"mfrID", manufacturer.MfrID},
+			{"mfrName", manufacturer.MfrName},
+			{"vehicleTypes", bson.A{
+				bson.D{
+					{"isPrimary", manufacturer.VehicleTypes[0].IsPrimary},
+					{"name", manufacturer.VehicleTypes[0].Name},
+				},
+			},
+			}},
+		)
+		killCursors := mtest.CreateCursorResponse(0, "vehiclesapp.vehicles", mtest.NextBatch)
+		mt.AddMockResponses(first, killCursors)
+
+
+		manufacturerResponse, err := manufacturerRepo.GetAllManufacturers(context.Background(), manufacturerCollection)
+		assert.Nil(t, err)
+
+		assert.Equal(t, []models.Manufacturer{
+			manufacturer,
+		}, manufacturerResponse)
+
+	})
+
+	mt.Run("failure", func(mt *mtest.T) {
+		manufacturerCollection := mt.Coll
+
+		mt.AddMockResponses(bson.D{{"ok", 0}})
+
+		_, err := manufacturerRepo.GetManufacturer(context.Background(), manufacturerCollection, manufacturer.MfrID)
+		assert.Error(t, err)
+	})
+
 }

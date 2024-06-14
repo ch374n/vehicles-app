@@ -2,25 +2,29 @@ package handlers
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
-	"io/ioutil"
 
 	"github.com/ch374n/vehicles-app/internal/models"
 	"github.com/ch374n/vehicles-app/internal/repository"
 	"github.com/ch374n/vehicles-app/logger"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gorilla/mux"
 )
 
 type ManufacturerHandlers struct {
-	repo repository.ManufacturerRepo
+	repo       repository.ManufacturerRepo
+	collection *mongo.Collection
 }
 
-func NewManufacturerHandlers(r *repository.ManufacturerRepo) *ManufacturerHandlers {
-	return &ManufacturerHandlers{repo: *r}
+func NewManufacturerHandlers(r *repository.ManufacturerRepo, collection *mongo.Collection) *ManufacturerHandlers {
+	return &ManufacturerHandlers{
+		repo:       *r,
+		collection: collection,
+	}
 }
-
 
 func (h *ManufacturerHandlers) LoadManufacturers(w http.ResponseWriter, r *http.Request) {
 	apiURL := "https://vpic.nhtsa.dot.gov/api/vehicles/getallmanufacturers?format=json"
@@ -51,7 +55,7 @@ func (h *ManufacturerHandlers) LoadManufacturers(w http.ResponseWriter, r *http.
 	}
 
 	for _, manufacturer := range manufacturers.Results {
-		err = h.repo.CreateManufacturer(r.Context(), manufacturer)
+		err = h.repo.CreateManufacturer(r.Context(), h.collection, manufacturer)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -63,7 +67,7 @@ func (h *ManufacturerHandlers) LoadManufacturers(w http.ResponseWriter, r *http.
 }
 
 func (h *ManufacturerHandlers) GetManufacturers(w http.ResponseWriter, r *http.Request) {
-	manufacturers, err := h.repo.GetAllManufacturers(r.Context())
+	manufacturers, err := h.repo.GetAllManufacturers(r.Context(), h.collection)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -81,7 +85,7 @@ func (h *ManufacturerHandlers) GetManufacturer(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	manufacturer, err := h.repo.GetManufacturer(r.Context(), id)
+	manufacturer, err := h.repo.GetManufacturer(r.Context(), h.collection, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -99,7 +103,7 @@ func (h *ManufacturerHandlers) CreateManufacturer(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = h.repo.CreateManufacturer(r.Context(), manufacturer)
+	err = h.repo.CreateManufacturer(r.Context(), h.collection, manufacturer)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -123,7 +127,7 @@ func (h *ManufacturerHandlers) UpdateManufacturer(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = h.repo.UpdateManufacturer(r.Context(), id, manufacturer)
+	err = h.repo.UpdateManufacturer(r.Context(), h.collection, id, manufacturer)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -140,7 +144,7 @@ func (h *ManufacturerHandlers) DeleteManufacturer(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = h.repo.DeleteManufacturer(r.Context(), id)
+	err = h.repo.DeleteManufacturer(r.Context(), h.collection, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

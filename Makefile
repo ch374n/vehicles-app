@@ -1,7 +1,9 @@
 .DEFAULT_GOAL := help
 
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-clean:					## Clean project
+clean:        ## Clean project
 	go version
 	rm -rf target
 	rm -rf vendor
@@ -10,27 +12,20 @@ clean:					## Clean project
 generate-mock: 
 	go generate -v ./...
 
-run:
+run:    ## Run application
 	go run main.go
 
 run-docker:
 	docker build -t ch374n/vehicles-app:latest
 	docker run -it -p 8081:8081 -e APP_MONGO_URI=$(APP_MONGO_URI) ch374n/vehicles-app
 
-coverage:
+coverage:   ## Run code coverage
 	go test ./... -coverpkg ./... -coverprofile coverage.out && cat coverage.out | grep -vE "(/mocks/|testenv|/cmd/|/generated/|/cloud/)" > coverage_filtered.out && go tool cover -html coverage_filtered.out
 
-test:					## Run test suite
+test:        ## Run test suite
 	go mod vendor
 	go build ./...
 	go test -cover -race ./...
 
-windows: 
+windows:
 	env GOOS=windows GOARCH=amd64 go build main.go
-
-help:					## Display available targets and documentation
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		sort | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
-
-
