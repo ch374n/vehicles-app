@@ -1,33 +1,31 @@
-name: Go Test and Format
+name: Go Code Checks
+
 on:
   workflow_dispatch:
   pull_request:
     branches: [main]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
 
+  go-checks:
+    name: Go Code Checks
+    runs-on: ubuntu-latest
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v3
       with:
-        go-version: 1.22.4 # Specify the Go version you want to use
+        go-version: 1.22.4
 
-    - name: Run go fmt
-      run: |
-        go mod tidy
-        go fmt ./...
+    - name: Check out code
+      uses: actions/checkout@v2
 
-  - name: Run tests and capture output  # Indentation fixed here
+    - name: Run tests and capture output  # Indentation fixed here
       id: test_output
       run: |
         go test -coverprofile=coverage.out./... > test_output.txt
         echo "::set-output name=output::$(cat test_output.txt)"
-
+    
     - name: Add PR comment with test output
       uses: actions/github-script@v6
       env:
