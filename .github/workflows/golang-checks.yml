@@ -24,8 +24,8 @@ jobs:
       id: test_output
       run: |
         go test -coverprofile=coverage.out ./...
-        echo "::set-output name=output::$(go tool cover -func=coverage.out)"
-    
+        echo "::set-output name=output::$(go tool cover -func=coverage.out | tr '\n' '|')"
+
     - name: Add PR comment with test output
       uses: actions/github-script@v6
       env:
@@ -36,9 +36,11 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
+          const testOutput = process.env.TEST_OUTPUT.split('|').join('\n');
+
           await github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: process.env.TEST_OUTPUT
+            body: testOutput
           });
