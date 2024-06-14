@@ -31,9 +31,9 @@ func Run() {
 	}
 	defer database.DisconnectMongoDB()
 
-	manufacturerRepo := repository.NewManufacturerRepo(database.MongoClient.Database(cfg.DBName).Collection(cfg.CollectionName))
+	manufacturerRepo := repository.NewManufacturerRepo()
 
-	mfHandler := handlers.NewManufacturerHandlers(&manufacturerRepo)
+	mfHandler := handlers.NewManufacturerHandlers(&manufacturerRepo, database.MongoClient.Database(cfg.DBName).Collection(cfg.CollectionName))
 
 	router := mux.NewRouter()
 
