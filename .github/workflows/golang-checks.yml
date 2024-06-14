@@ -22,39 +22,26 @@ jobs:
 
     - name: Run format check
       run: |
-        format_output=$(make format || true)
-        echo "FORMAT_OUTPUT<<EOF" >> $GITHUB_OUTPUT
-        echo "```" >> $GITHUB_OUTPUT
-        echo "$format_output" >> $GITHUB_OUTPUT
-        echo "```" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        make format > format_output.txt || true
 
     - name: Run tests
       run: |
-        test_output=$(make test || true)
-        echo "TEST_OUTPUT<<EOF" >> $GITHUB_OUTPUT
-        echo "```" >> $GITHUB_OUTPUT
-        echo "$test_output" >> $GITHUB_OUTPUT
-        echo "```" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        make test > test_output.txt || true
 
     - name: Run coverage
       run: |
-        coverage_output=$(make coverage || true)
-        echo "COVERAGE_OUTPUT<<EOF" >> $GITHUB_OUTPUT
-        echo "```" >> $GITHUB_OUTPUT
-        echo "$coverage_output" >> $GITHUB_OUTPUT
-        echo "```" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        make coverage > coverage_output.txt || true
 
     - name: Comment on PR
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const formatOutput = process.env.FORMAT_OUTPUT ? process.env.FORMAT_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim() : 'No output';
-          const testOutput = process.env.TEST_OUTPUT ? process.env.TEST_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim() : 'No output';
-          const coverageOutput = process.env.COVERAGE_OUTPUT ? process.env.COVERAGE_OUTPUT.split('<<EOF')[1].split('EOF')[0].trim() : 'No output';
+          const fs = require('fs');
+
+          const formatOutput = fs.readFileSync('format_output.txt', 'utf8').trim() || 'No output';
+          const testOutput = fs.readFileSync('test_output.txt', 'utf8').trim() || 'No output';
+          const coverageOutput = fs.readFileSync('coverage_output.txt', 'utf8').trim() || 'No output';
 
           const comment = `
           ### Format Check
