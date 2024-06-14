@@ -31,13 +31,13 @@ jobs:
 
     - name: Prepare coverage report
       id: prepare_coverage
-      run: echo "COVERAGE_REPORT=$(cat coverage.html)" >> $GITHUB_OUTPUT
+      run: echo "coverage_report=$(cat coverage.html)" >> $GITHUB_OUTPUT
 
 
     - name: Add PR comment with coverage report
       uses: actions/github-script@v6
       env:
-        COVERAGE_REPORT: ${{ env.COVERAGE_REPORT }}
+        COVERAGE_REPORT: ${{ steps.prepare_coverage.outputs.coverage_report }}
       with:
         script: |
           const fs = require('fs');
