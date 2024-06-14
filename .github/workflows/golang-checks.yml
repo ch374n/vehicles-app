@@ -20,35 +20,32 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v3
 
-    - name: Run format check
-      id: format
-      run: |
-        make format || echo "Format check failed" > format_output.txt
+      - name: Run format check
+        id: format
+        run: |
+          make format
+          format_output=$(go fmt ./... 2>&1)  # Capture stderr and stdout
 
-    - name: Capture format output
-      id: capture_format_output
-      run: |
-        echo "${{ steps.format.outputs.format_output }}" > format_output.txt
+      - name: Capture format output
+        id: capture_format_output
+        run: |
+          echo "$format_output" > format_output.txt
 
-    - name: Run tests
-      id: tests
-      run: |
-        make test || echo "Tests failed" > tests_output.txt
+      - name: Run tests
+        id: tests
+        run: |
+          test_output=$(go test ./... -coverpkg ./... -coverprofile=coverage.out 2>&1)  # Capture stderr and stdout
 
-    - name: Capture tests output
-      id: capture_tests_output
-      run: |
-        echo "${{ steps.tests.outputs.test_output }}" > tests_output.txt
+      - name: Capture tests output
+        id: capture_tests_output
+        run: |
+          echo "$test_output" > tests_output.txt
 
-    - name: Run coverage
-      id: coverage
-      run: |
-        make coverage || echo "Coverage failed" > coverage_output.txt
-
-    - name: Capture coverage output
-      id: capture_coverage_output
-      run: |
-        echo "${{ steps.coverage.outputs.coverage_output }}" > coverage_output.txt
+      - name: Run coverage
+        id: coverage
+        run: |
+          coverage_output=$(go test -coverprofile=coverage.out ./... 2>&1)  # Capture stderr and stdout
+          cat coverage.out | grep -vE '(/app/|configs|/logger/|/generated/|/cloud/)’ > coverage_filtered.out
 
     - name: Comment on PR
       uses: actions/github-script@v6
@@ -57,9 +54,9 @@ jobs:
         script: |
           const fs = require('fs');
 
-          const formatOutput = fs.readFileSync('format_output.txt', 'utf8').trim() || 'No output';
-          const testOutput = fs.readFileSync('tests_output.txt', 'utf8').trim() || 'No output';
-          const coverageOutput = fs.readFileSync('coverage_output.txt', 'utf8').trim() || 'No output';
+          const formatOutput = process.env.format_output || 'No output';
+          const testOutput = process.env.test_output || 'No output';
+          const coverageOutput = process.env.coverage_output || 'No output';
 
           const comment = `
           ### Format Check Output
