@@ -24,16 +24,19 @@ jobs:
       id: format
       run: |
         echo "::set-output name=format_output::$(go fmt ./...)"
+
     - name: Run tests
       id: tests
       run: |
         go test ./... -coverprofile=coverage.out
         echo "::set-output name=test_output::$(go tool cover -func=coverage.out | grep total | awk '{print $3}')"
+        
     - name: Run coverage
       id: coverage
       run: |
-        go test -coverprofile=coverage.out ./...
-        echo "::set-output name=coverage_output::$(go tool cover -func=coverage.out)"
+        coverage_output=$(go tool cover -func=coverage.out)
+        echo "::set-output name=coverage_output::$coverage_output"
+    
     - name: Comment on PR
       uses: actions/github-script@v6
       with:
