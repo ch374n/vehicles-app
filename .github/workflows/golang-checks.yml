@@ -38,9 +38,17 @@ jobs:
 
           const testOutput = process.env.TEST_OUTPUT.split('|').join('\n');
 
+          const comment = `
+          ### Code Coverage
+          \`\`\`
+          ${testOutput}
+          \`\`\`
+          `;
+
+
           await github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: testOutput
+            body: comment
           });
