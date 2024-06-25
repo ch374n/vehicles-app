@@ -18,13 +18,10 @@ services:
 
   golang_app:
     build: .
-<<<<<<< Updated upstream
-    container_name: golang_app
-=======
+
     container_name: go-service-with-metrics
->>>>>>> Stashed changes
     environment:
-      - APP_MONGO_URI=mongodb+srv://chetanrnimbalkar:4YyDyj2n8LinO19J@ch374ns.6butzms.mongodb.net
+      - APP_MONGO_URI=mongodb://mongodb:27017/vehicles_db
     ports:
       - "8081:8081"
     depends_on:
