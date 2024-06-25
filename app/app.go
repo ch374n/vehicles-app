@@ -8,6 +8,8 @@ import (
 	"github.com/ch374n/vehicles-app/internal/repository"
 	"github.com/ch374n/vehicles-app/logger"
 	"github.com/ch374n/vehicles-app/pkg/database"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/ch374n/vehicles-app/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -38,6 +40,11 @@ func Run() {
 	router := mux.NewRouter()
 
 	handlers.SwaggerUIHandler(router)
+
+	metricsMiddleware := middleware.NewMetricsMiddleware()
+
+	router.Use(metricsMiddleware.Metrics)
+	router.Handle("/metrics", promhttp.Handler())
 
 	mfRouter := router.PathPrefix("/api/v1/manufacturers").Subrouter()
 	mfRouter.HandleFunc("", mfHandler.GetManufacturers).Methods(http.MethodGet)

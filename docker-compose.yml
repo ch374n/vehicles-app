@@ -1,6 +1,29 @@
 version: '3.3'
 
 services:
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    networks:
+      - mynetwork
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - 9090:9090
+    depends_on:
+      - go-service-with-metrics
+    networks:
+      - mynetwork
+
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -16,10 +39,9 @@ services:
     networks:
       - mynetwork
 
-  golang_app:
+  go-service-with-metrics:
     build: .
-
-    container_name: go-service-with-metrics
+    container_name: golgo-service-with-metrics
     environment:
       - APP_MONGO_URI=mongodb://mongodb:27017/vehicles_db
     ports:
