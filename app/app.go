@@ -7,10 +7,11 @@ import (
 	config "github.com/ch374n/vehicles-app/configs"
 	"github.com/ch374n/vehicles-app/internal/repository"
 	"github.com/ch374n/vehicles-app/logger"
-	"github.com/ch374n/vehicles-app/pkg/database"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/ch374n/vehicles-app/middleware"
+	"github.com/ch374n/vehicles-app/pkg/database"
+	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func Run() {
@@ -35,7 +36,13 @@ func Run() {
 
 	manufacturerRepo := repository.NewManufacturerRepo()
 
-	mfHandler := handlers.NewManufacturerHandlers(&manufacturerRepo, database.MongoClient.Database(cfg.DBName).Collection(cfg.CollectionName))
+	mfHandler := handlers.NewManufacturerHandlers(
+		&manufacturerRepo,
+		database.MongoClient.Database(cfg.DBName).Collection(cfg.CollectionName),
+		redis.NewClient(&redis.Options{
+			Addr: cfg.RedisConnection,
+		}),
+	)
 
 	router := mux.NewRouter()
 
