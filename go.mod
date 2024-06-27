@@ -17,6 +17,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/joho/godotenv v1.5.1
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

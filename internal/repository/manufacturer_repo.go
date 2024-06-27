@@ -3,6 +3,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/ch374n/vehicles-app/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,7 +41,7 @@ func (r *ManufacturerRepoImpl) GetAllManufacturers(ctx context.Context, coll *mo
 
 func (r *ManufacturerRepoImpl) GetManufacturer(ctx context.Context, coll *mongo.Collection, id int) (models.Manufacturer, error) {
 	var manufacturer models.Manufacturer
-	err := coll.FindOne(ctx, bson.M{"Mfr_ID": id}).Decode(&manufacturer)
+	err := coll.FindOne(ctx, bson.M{"mfrid": id}).Decode(&manufacturer)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return manufacturer, nil

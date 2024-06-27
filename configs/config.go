@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -17,7 +18,14 @@ type Config struct {
 func Load(logger zerolog.Logger) (*Config, error) {
 	var cfg Config
 
-	err := envconfig.Process("APP", &cfg)
+	// Load the .env file from the current working directory
+	err := godotenv.Load()
+	if err != nil {
+		logger.Error().Msgf("Error loading .env file: %s", err)
+		return nil, err
+	}
+
+	err = envconfig.Process("APP", &cfg)
 	if err != nil {
 		logger.Error().Msgf("Error while loading the environment config - %s", err)
 
