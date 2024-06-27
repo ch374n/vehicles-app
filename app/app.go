@@ -7,10 +7,12 @@ import (
 	config "github.com/ch374n/vehicles-app/configs"
 	"github.com/ch374n/vehicles-app/internal/repository"
 	"github.com/ch374n/vehicles-app/logger"
-	"github.com/ch374n/vehicles-app/pkg/database"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/ch374n/vehicles-app/middleware"
+	"github.com/ch374n/vehicles-app/pkg/database"
+	"github.com/ch374n/vehicles-app/scheduler"
+	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func Run() {
@@ -34,8 +36,16 @@ func Run() {
 	defer database.DisconnectMongoDB()
 
 	manufacturerRepo := repository.NewManufacturerRepo()
+	collection := database.MongoClient.Database(cfg.DBName).Collection(cfg.CollectionName)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: cfg.RedisConnection,
+	})
 
-	mfHandler := handlers.NewManufacturerHandlers(&manufacturerRepo, database.MongoClient.Database(cfg.DBName).Collection(cfg.CollectionName))
+	mfHandler := handlers.NewManufacturerHandlers(
+		&manufacturerRepo,
+		collection,
+		redisClient,
+	)
 
 	router := mux.NewRouter()
 
@@ -53,6 +63,12 @@ func Run() {
 	mfRouter.HandleFunc("/{id}", mfHandler.GetManufacturer).Methods(http.MethodGet)
 	mfRouter.HandleFunc("/{id}", mfHandler.UpdateManufacturer).Methods(http.MethodPut)
 	mfRouter.HandleFunc("/{id}", mfHandler.DeleteManufacturer).Methods(http.MethodDelete)
+
+	go func() {
+		scheduler := scheduler.NewScheduler(collection, redisClient)
+
+		scheduler.SyncToMongodb()
+	}()
 
 	log.Println("Starting server on :8081")
 	log.Fatal().Err(http.ListenAndServe(":8081", router))

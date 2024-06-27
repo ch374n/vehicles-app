@@ -30,18 +30,14 @@ curl -X GET http://localhost:8081/api/v1/manufacturers/<manufacturer_id>
 curl -X PUT http://localhost:8081/api/v1/manufacturers/<manufacturer_id> \
 -H "Content-Type: application/json" \
 -d '{
-    "Country": "UNITED STATES (USA)",
-    "Mfr_CommonName": "Tesla",
-    "Mfr_ID": 955,
-    "Mfr_Name": "TESLA, INC.",
+    "Country": "GERMANY",
+    "Mfr_CommonName": "",
+    "Mfr_ID": 1023,
+    "Mfr_Name": "MERCEDES-BENZ, AG",
     "VehicleTypes": [
         {
             "IsPrimary": true,
             "Name": "Passenger Car"
-        },
-        {
-            "IsPrimary": false,
-            "Name": "Truck"
         },
         {
             "IsPrimary": false,
