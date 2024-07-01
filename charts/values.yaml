@@ -77,6 +77,10 @@ autoscaling:
 
 nodeSelector: {}
 
+vehiclesSecretName: vehiclesapp-secret
+
+appMongoURI: //replace
+
 tolerations: []
 
 affinity: {}
