@@ -1,42 +1,67 @@
-name: "Terraform"
-
+name: "Terraform and Minikube"
+concurrency:
+  group: deploy-test
+  cancel-in-progress: false
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - terraform/**
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
 
 jobs:
+
   terraform:
-    name: "Terraform"
+
+    name: "Test: Terraform"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./terraform
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup Minikube
+        uses: medyagh/setup-minikube@master
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      - name: Terraform Format
+      - name: "Test: Terraform fmt"
         id: fmt
-        run: terraform fmt -check
+        run: terraform fmt -check -no-color
+        continue-on-error: true
 
-      - name: Terraform Init
+      - name: "Setup: TFLint"
+        uses: terraform-linters/setup-tflint@v3
+        with:
+          tflint_version: v0.48.0
+
+      - name: "Test: Terraform linter"
+        run: tflint -f compact
+        shell: bash
+
+      - name: "Test: Terraform Init"
         id: init
-        run: terraform init
-      
-      - name: Terraform Validate
+        run: terraform init -no-color
+
+      - name: "Test: Terraform Validate"
         id: validate
         run: terraform validate -no-color
 
-      - name: Terraform Plan
-        id: plan
-        if: github.event_name == 'pull_request'
-        run: terraform plan -no-color -input=false
-        continue-on-error: true
 
+      - name: "Test: Terraform Plan"
+        id: plan
+        run: terraform plan -no-color
+        
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
@@ -48,17 +73,12 @@ jobs:
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
             <details><summary>Show Plan</summary>
-
             \`\`\`\n
             ${process.env.PLAN}
             \`\`\`
-
             </details>
-
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -73,3 +93,4 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
+        working-directory: ./terraform
