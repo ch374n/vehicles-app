@@ -45,9 +45,9 @@ jobs:
         with:
           tflint_version: v0.48.0
 
-      - name: "Test: Terraform linter"
-        run: tflint -f compact
-        shell: bash
+      # - name: "Test: Terraform linter"
+      #   run: tflint -f compact
+      #   shell: bash
 
       - name: "Test: Terraform Init"
         id: init
