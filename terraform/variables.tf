@@ -13,7 +13,7 @@ variable "kube_context" {
 variable "app_name" {
   type        = string
   description = "Name of the application"
-  default     = "my-app"
+  default     = "vehicles-app"
 }
 
 variable "app_image" {
